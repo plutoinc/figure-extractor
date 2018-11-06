@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "outDir": "./dst",
+    "sourceMap": true,
+    "allowUnusedLabels": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "target": "es6",
+    "module": "commonjs",
+    "removeComments": true,
+    "experimentalDecorators": true,
+    "strictNullChecks": true
+  },
+  "include": ["./index.ts", "./temp.ts"],
+  "exclude": ["node_modules/**/*"]
+}
