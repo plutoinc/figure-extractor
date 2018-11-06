@@ -1,6 +1,8 @@
 import * as AWS from "aws-sdk";
 
-const sqs = new AWS.SQS();
+const sqs = new AWS.SQS({
+  region: "us-east-1"
+});
 
 const params = {
   QueueUrl: "https://sqs.us-east-1.amazonaws.com/966390130392/figure-extract"
