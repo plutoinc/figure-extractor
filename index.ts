@@ -1,5 +1,14 @@
 import * as AWS from "aws-sdk";
 
+type ProgressStatus = "not_started" | "pending" | "done";
+
+interface Paper {
+  paper_id: string;
+  paper_urls: string[];
+  paper_images: string[];
+  status: ProgressStatus;
+}
+
 const sqs = new AWS.SQS({
   region: "us-east-1"
 });
@@ -16,7 +25,14 @@ setInterval(() => {
     } else {
       if (data.Messages && data.Messages.length > 0) {
         data.Messages.map(msg => {
-          console.log(msg);
+          if (msg.Body) {
+            try {
+              const paper = JSON.parse(msg.Body) as Paper;
+              console.log(paper);
+            } catch (err) {
+              console.error("ERROR OCCURRED to parse JSON message", err);
+            }
+          }
         });
       }
     }
