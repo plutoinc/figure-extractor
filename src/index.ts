@@ -1,5 +1,6 @@
 import * as AWS from "aws-sdk";
 import { downloadPDF } from "./downloadPdf";
+import { extractImgs } from "./extractImgs";
 // type ProgressStatus = "not_started" | "pending" | "done";
 
 export interface MessageBody {
@@ -38,7 +39,8 @@ setInterval(() => {
             try {
               const message = JSON.parse(msg.Body) as MessageBody;
 
-              await downloadPDF(msg.MessageId, message);
+              const pdfPath = await downloadPDF(msg.MessageId, message);
+              await extractImgs(pdfPath);
 
               if (msg.ReceiptHandle) {
                 deleteMessage(msg.ReceiptHandle);

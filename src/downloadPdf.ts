@@ -7,7 +7,7 @@ export async function downloadPDF(
   messageBody: MessageBody
 ): Promise<string> {
   const urlList = messageBody.paper_urls;
-  let pdfFileName: string = "";
+  let pdfPath: string = "";
 
   for (const url of urlList) {
     try {
@@ -30,22 +30,22 @@ export async function downloadPDF(
 
               if (isPDF) {
                 const urlArray = url.split("/");
-                const filename = `${messageBody.paper_id}-${
+                const pdfFileName = `${messageBody.paper_id}-${
                   urlArray[urlArray.length - 1]
                 }`;
 
                 fs.mkdirSync(`${__dirname}/${messageId}`);
 
                 fs.writeFileSync(
-                  `${__dirname}/${messageId}/${filename}`,
+                  `${__dirname}/${messageId}/${pdfFileName}`,
                   body,
                   {
                     encoding: "binary"
                   }
                 );
 
-                pdfFileName = filename;
-                resolve(filename);
+                pdfPath = pdfFileName;
+                resolve();
               } else {
                 reject("Not PDF");
               }
@@ -54,7 +54,7 @@ export async function downloadPDF(
         );
       });
 
-      if (pdfFileName && pdfFileName.length > 0) {
+      if (pdfPath && pdfPath.length > 0) {
         break;
       }
     } catch (err) {
@@ -64,5 +64,5 @@ export async function downloadPDF(
     }
   }
 
-  return pdfFileName;
+  return pdfPath;
 }
