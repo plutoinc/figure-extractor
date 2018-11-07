@@ -44,7 +44,7 @@ export async function downloadPDF(
                   }
                 );
 
-                pdfPath = pdfFileName;
+                pdfPath = `${__dirname}/${messageId}/${pdfFileName}`;
                 resolve();
               } else {
                 reject("Not PDF");
