@@ -11,6 +11,6 @@
     "experimentalDecorators": true,
     "strictNullChecks": true
   },
-  "include": ["./index.ts", "./temp.ts"],
+  "include": ["./src/index.ts"],
   "exclude": ["node_modules/**/*"]
 }

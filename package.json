@@ -4,14 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dst && tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@types/node": "^10.12.2",
-    "aws-sdk": "^2.349.0"
+    "aws-sdk": "^2.349.0",
+    "request": "^2.88.0"
   },
   "devDependencies": {
     "typescript": "^3.1.6"

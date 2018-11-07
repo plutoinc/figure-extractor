@@ -1,15 +1,21 @@
 import * as AWS from "aws-sdk";
+import { downloadPDF } from "./downloadPdf";
+// type ProgressStatus = "not_started" | "pending" | "done";
+
+export interface MessageBody {
+  paper_id: string;
+  paper_urls: string[];
+}
+
+// interface Paper {
+//   paperId: string;
+//   paperUrls: string[];
+//   paperImages: string[];
+//   status: ProgressStatus;
+// }
 
 const QUEUE_URL =
   "https://sqs.us-east-1.amazonaws.com/966390130392/figure-extract";
-type ProgressStatus = "not_started" | "pending" | "done";
-
-interface Paper {
-  paper_id: string;
-  paper_urls: string[];
-  paper_images?: string[];
-  status?: ProgressStatus;
-}
 
 const sqs = new AWS.SQS({
   region: "us-east-1"
@@ -26,19 +32,24 @@ setInterval(() => {
       return;
     } else {
       if (data.Messages && data.Messages.length > 0) {
-        data.Messages.map(msg => {
-          if (msg.Body) {
+        const processes = data.Messages.map(async msg => {
+          if (msg.Body && msg.MessageId) {
             try {
-              const paper = JSON.parse(msg.Body) as Paper;
-              console.log(paper);
+              const message = JSON.parse(msg.Body) as MessageBody;
+
+              await downloadPDF(msg.MessageId, message);
+
+              if (msg.ReceiptHandle) {
+                deleteMessage(msg.ReceiptHandle);
+              }
             } catch (err) {
               console.error("ERROR OCCURRED to parse JSON message", err);
             }
           }
+        });
 
-          if (msg.ReceiptHandle) {
-            deleteMessage(msg.ReceiptHandle);
-          }
+        Promise.all(processes).then(() => {
+          console.log("DONE");
         });
       }
     }
