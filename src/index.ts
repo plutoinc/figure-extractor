@@ -34,6 +34,7 @@ setInterval(() => {
       if (data.Messages && data.Messages.length > 0) {
         const processes = data.Messages.map(async msg => {
           if (msg.Body && msg.MessageId) {
+            console.log(msg.Body);
             try {
               const message = JSON.parse(msg.Body) as MessageBody;
 
