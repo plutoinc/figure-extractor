@@ -39,7 +39,9 @@ export async function downloadPDF(
                   pdfFilename = rawPdfFilename + ".pdf";
                 }
 
-                fs.mkdirSync(`${__dirname}/${messageId}`);
+                if (!fs.existsSync(`${__dirname}/${messageId}`)) {
+                  fs.mkdirSync(`${__dirname}/${messageId}`);
+                }
 
                 fs.writeFileSync(
                   `${__dirname}/${messageId}/${pdfFilename}`,

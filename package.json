@@ -13,10 +13,13 @@
     "@types/node": "^10.12.2",
     "aws-sdk": "^2.349.0",
     "gm": "^1.23.1",
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "rimraf": "^2.6.2"
   },
   "devDependencies": {
     "@types/gm": "^1.18.1",
+    "@types/rimraf": "^2.0.2",
+    "ts-node": "^7.0.1",
     "typescript": "^3.1.6"
   }
 }
