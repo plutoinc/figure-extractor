@@ -5,15 +5,16 @@ import { extractImgs } from "./extractImgs";
 import { getImgFileNames } from "./getImgFilenames";
 import { cleanSmallByteImages } from "./cleanImgs";
 import { uploadFolder } from "./uploadToS3";
+import { updateDynamoDB } from "./updateDynamoDB";
 
-type ProgressStatus = "not_started" | "pending" | "done";
+export type ProgressStatus = "not_started" | "pending" | "done";
 
 export interface MessageBody {
   paper_id: string;
   paper_urls: string[];
 }
 
-interface Paper {
+export interface Paper {
   paperId: string;
   paperUrls: string[];
   paperImages: string[];
@@ -47,10 +48,11 @@ setInterval(() => {
               const message = JSON.parse(msg.Body) as MessageBody;
 
               const pdfPath = await downloadPDF(msg.MessageId, message);
+
               if (!pdfPath || pdfPath.length === 0) {
                 console.log("There isn't any PDF file to extract");
                 if (msg.ReceiptHandle) {
-                  deleteMessage(msg.ReceiptHandle);
+                  return deleteMessage(msg.ReceiptHandle);
                 }
               }
 
@@ -60,22 +62,22 @@ setInterval(() => {
 
               if (imgFilenames && imgFilenames.length > 0) {
                 cleanSmallByteImages(imgFilenames, dirForPdfImg);
-                const s3Keys = await uploadFolder(
-                  dirForPdfImg,
-                  message.paper_id
-                );
-                const paperImages = s3Keys.filter(key => key.endsWith(".png"));
-                const paperPdf = s3Keys.find(key => key.endsWith(".pdf")) || "";
-
-                const paper: Paper = {
-                  paperId: message.paper_id,
-                  paperUrls: message.paper_urls,
-                  paperImages,
-                  paperPdf,
-                  status: "done"
-                };
-                console.log(paper);
               }
+
+              const s3Keys = await uploadFolder(dirForPdfImg, message.paper_id);
+              const paperImages =
+                s3Keys.filter(key => key.endsWith(".png")) || [];
+              const paperPdf = s3Keys.find(key => key.endsWith(".pdf")) || "";
+
+              const paper: Paper = {
+                paperId: message.paper_id,
+                paperUrls: message.paper_urls,
+                paperImages,
+                paperPdf,
+                status: "done"
+              };
+
+              await updateDynamoDB(paper);
             } catch (err) {
               console.error(err);
             }
