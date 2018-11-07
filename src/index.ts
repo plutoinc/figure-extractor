@@ -5,10 +5,10 @@ import { extractImgs } from "./extractImgs";
 import { getImgFileNames } from "./getImgFilenames";
 import { cleanSmallByteImages } from "./cleanImgs";
 import { uploadFolder } from "./uploadToS3";
-import { updateDynamoDB } from "./updateDynamoDB";
+import DynamoDBManager from "./updateDynamoDB";
 import { cleanArtifacts } from "./cleanArtifacts";
 
-export type ProgressStatus = "not_started" | "pending" | "done";
+export type ProgressStatus = "failed" | "pending" | "done";
 
 export interface MessageBody {
   paper_id: string;
@@ -48,6 +48,15 @@ setInterval(() => {
             try {
               const message = JSON.parse(msg.Body) as MessageBody;
 
+              const alreadyDone = await checkAlreadyDoneBefore(
+                message.paper_id
+              );
+
+              if (alreadyDone) {
+                console.log("It's already processed one");
+                return deleteMessage(msg.ReceiptHandle);
+              }
+
               const pdfPath = await downloadPDF(msg.MessageId, message);
 
               if (!pdfPath || pdfPath.length === 0) {
@@ -76,7 +85,8 @@ setInterval(() => {
                 status: "done"
               };
 
-              await updateDynamoDB(paper);
+              console.log(paper);
+
               cleanArtifacts(dirForPdfImg);
               deleteMessage(msg.ReceiptHandle);
             } catch (err) {
@@ -107,4 +117,14 @@ function deleteMessage(receiptHandle: string) {
     if (err) console.log(err, err.stack);
     else console.log(data);
   });
+}
+
+async function checkAlreadyDoneBefore(paperId: string): Promise<boolean> {
+  const result = await DynamoDBManager.getPaperItem(paperId);
+
+  if (result && result.status) {
+    return result.status.S === "done";
+  }
+
+  return false;
 }
