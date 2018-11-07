@@ -9,31 +9,36 @@ export async function uploadFolder(folderPath: string, prefix: string) {
   const filenames = fs.readdirSync(folderPath);
 
   const promises = filenames.map(async filename => {
-    const fileStream = fs.createReadStream(`${folderPath}/${filename}`);
+    return await new Promise((resolve, reject) => {
+      const fileStream = fs.createReadStream(`${folderPath}/${filename}`);
 
-    fileStream.on("error", err => {
-      if (err) {
-        throw err;
-      }
-    });
+      fileStream.on("error", err => {
+        if (err) {
+          reject(err);
+        }
+      });
 
-    fileStream.on("open", () => {
-      const params = {
-        Bucket: BUCKET,
-        Key: `${prefix}/${filename}`,
-        Body: fileStream
-      };
+      fileStream.on("open", async () => {
+        const params = {
+          Bucket: BUCKET,
+          Key: `${prefix}/${filename}`,
+          Body: fileStream
+        };
 
-      try {
-        s3.upload(params).promise();
-      } catch (err) {
-        console.error("Has error to upload file to s3", err);
-        throw err;
-      }
+        try {
+          const data = await s3.upload(params).promise();
+          resolve(data);
+        } catch (err) {
+          console.error("Has error to upload file to s3", err);
+          reject(err);
+        }
+      });
     });
   });
 
-  await Promise.all(promises).then(() => {
+  await Promise.all(promises).then(res => {
+    console.log("PROMISES", res);
+    console.log("PROMISES %j", res);
     console.log("SUCCESS TO UPLOAD ALL FILES IN FOLDER");
   });
 }
