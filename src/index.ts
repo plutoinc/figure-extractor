@@ -1,6 +1,10 @@
 import * as AWS from "aws-sdk";
+import * as path from "path";
 import { downloadPDF } from "./downloadPdf";
 import { extractImgs } from "./extractImgs";
+import { getImgFileNames } from "./getImgFilenames";
+import { cleanSmallByteImages } from "./cleanImgs";
+
 // type ProgressStatus = "not_started" | "pending" | "done";
 
 export interface MessageBody {
@@ -41,12 +45,20 @@ setInterval(() => {
 
               const pdfPath = await downloadPDF(msg.MessageId, message);
               await extractImgs(pdfPath);
+              const dirForPdfImg = path.resolve(pdfPath, "../");
+              const imgFilenames = getImgFileNames(dirForPdfImg);
 
-              if (msg.ReceiptHandle) {
-                deleteMessage(msg.ReceiptHandle);
+              if (imgFilenames && imgFilenames.length > 0) {
+                console.log(imgFilenames);
+                cleanSmallByteImages(imgFilenames, dirForPdfImg);
               }
             } catch (err) {
               console.error("ERROR OCCURRED to parse JSON message", err);
+            }
+
+            // TODO: Change the position of the below logic
+            if (msg.ReceiptHandle) {
+              deleteMessage(msg.ReceiptHandle);
             }
           }
         });
