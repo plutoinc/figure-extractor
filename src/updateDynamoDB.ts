@@ -8,7 +8,7 @@ const dynamodb = new AWS.DynamoDB({
 const TABLE_NAME = "paper-pdf-extarct";
 
 interface DynamoDBPaperParams extends PutItemInputAttributeMap {
-  PaperId: {
+  paperId: {
     S: string;
   };
   paperUrls: {
@@ -27,7 +27,7 @@ interface DynamoDBPaperParams extends PutItemInputAttributeMap {
 
 export async function updateDynamoDB(paper: Paper) {
   const item: DynamoDBPaperParams = {
-    PaperId: {
+    paperId: {
       S: paper.paperId
     },
     paperUrls: {
