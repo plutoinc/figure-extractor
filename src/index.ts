@@ -6,19 +6,20 @@ import { getImgFileNames } from "./getImgFilenames";
 import { cleanSmallByteImages } from "./cleanImgs";
 import { uploadFolder } from "./uploadToS3";
 
-// type ProgressStatus = "not_started" | "pending" | "done";
+type ProgressStatus = "not_started" | "pending" | "done";
 
 export interface MessageBody {
   paper_id: string;
   paper_urls: string[];
 }
 
-// interface Paper {
-//   paperId: string;
-//   paperUrls: string[];
-//   paperImages: string[];
-//   status: ProgressStatus;
-// }
+interface Paper {
+  paperId: string;
+  paperUrls: string[];
+  paperImages: string[];
+  paperPdf: string;
+  status: ProgressStatus;
+}
 
 const QUEUE_URL =
   "https://sqs.us-east-1.amazonaws.com/966390130392/figure-extract";
@@ -39,22 +40,44 @@ setInterval(() => {
     } else {
       if (data.Messages && data.Messages.length > 0) {
         const processes = data.Messages.map(async msg => {
+          console.log(msg.Body);
+
           if (msg.Body && msg.MessageId) {
-            console.log(msg.Body);
             try {
               const message = JSON.parse(msg.Body) as MessageBody;
 
               const pdfPath = await downloadPDF(msg.MessageId, message);
+              if (!pdfPath || pdfPath.length === 0) {
+                console.log("There isn't any PDF file to extract");
+                if (msg.ReceiptHandle) {
+                  deleteMessage(msg.ReceiptHandle);
+                }
+              }
+
               await extractImgs(pdfPath);
               const dirForPdfImg = path.resolve(pdfPath, "../");
               const imgFilenames = getImgFileNames(dirForPdfImg);
 
               if (imgFilenames && imgFilenames.length > 0) {
                 cleanSmallByteImages(imgFilenames, dirForPdfImg);
-                await uploadFolder(dirForPdfImg, message.paper_id);
+                const s3Keys = await uploadFolder(
+                  dirForPdfImg,
+                  message.paper_id
+                );
+                const paperImages = s3Keys.filter(key => key.endsWith(".png"));
+                const paperPdf = s3Keys.find(key => key.endsWith(".pdf")) || "";
+
+                const paper: Paper = {
+                  paperId: message.paper_id,
+                  paperUrls: message.paper_urls,
+                  paperImages,
+                  paperPdf,
+                  status: "done"
+                };
+                console.log(paper);
               }
             } catch (err) {
-              console.error("ERROR OCCURRED to parse JSON message", err);
+              console.error(err);
             }
 
             // TODO: Change the position of the below logic

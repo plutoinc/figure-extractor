@@ -30,21 +30,26 @@ export async function downloadPDF(
 
               if (isPDF) {
                 const urlArray = url.split("/");
-                const pdfFileName = `${messageBody.paper_id}-${
+                const rawPdfFilename = `${messageBody.paper_id}-${
                   urlArray[urlArray.length - 1]
                 }`;
+
+                let pdfFilename = rawPdfFilename;
+                if (!rawPdfFilename.endsWith(".pdf")) {
+                  pdfFilename = rawPdfFilename + ".pdf";
+                }
 
                 fs.mkdirSync(`${__dirname}/${messageId}`);
 
                 fs.writeFileSync(
-                  `${__dirname}/${messageId}/${pdfFileName}`,
+                  `${__dirname}/${messageId}/${pdfFilename}`,
                   body,
                   {
                     encoding: "binary"
                   }
                 );
 
-                pdfPath = `${__dirname}/${messageId}/${pdfFileName}`;
+                pdfPath = `${__dirname}/${messageId}/${pdfFilename}`;
                 resolve();
               } else {
                 reject("Not PDF");
@@ -58,9 +63,7 @@ export async function downloadPDF(
         break;
       }
     } catch (err) {
-      console.error("error at try catch", err);
-      console.log("NOT FOUND PDF");
-      throw err;
+      console.error("ERROR OCCURRED AT REQUEST URL LIST TO FIND PDF");
     }
   }
 

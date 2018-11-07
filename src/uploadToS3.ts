@@ -1,10 +1,14 @@
 import * as AWS from "aws-sdk";
 import * as fs from "fs";
+import { ManagedUpload } from "aws-sdk/clients/s3";
 
 const BUCKET = "scinapse-pdf-extract";
 const s3 = new AWS.S3();
 
-export async function uploadFolder(folderPath: string, prefix: string) {
+export async function uploadFolder(
+  folderPath: string,
+  prefix: string
+): Promise<string[]> {
   // prefix should be an id of the Paper
   const filenames = fs.readdirSync(folderPath);
 
@@ -36,9 +40,13 @@ export async function uploadFolder(folderPath: string, prefix: string) {
     });
   });
 
-  await Promise.all(promises).then(res => {
-    console.log("PROMISES", res);
-    console.log("PROMISES %j", res);
-    console.log("SUCCESS TO UPLOAD ALL FILES IN FOLDER");
-  });
+  return await Promise.all(promises)
+    .then((results: ManagedUpload.SendData[]) => {
+      const keys = results.map(res => res.Key);
+      return keys;
+    })
+    .catch(err => {
+      console.error("ERROR OCCURRED AT UPLOADING FOLDER TO S3");
+      throw err;
+    });
 }
