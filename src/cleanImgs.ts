@@ -12,7 +12,6 @@ export async function cleanSmallByteImages(
         if (err) {
           reject(err);
         } else {
-          console.log(imgFile, value);
           if (!isNaN(parseInt(value[value.length - 2], 10))) {
             // Byte
             fs.unlinkSync(`${tmpDirPath}/${imgFile}`);

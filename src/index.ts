@@ -4,6 +4,7 @@ import { downloadPDF } from "./downloadPdf";
 import { extractImgs } from "./extractImgs";
 import { getImgFileNames } from "./getImgFilenames";
 import { cleanSmallByteImages } from "./cleanImgs";
+import { uploadFolder } from "./uploadToS3";
 
 // type ProgressStatus = "not_started" | "pending" | "done";
 
@@ -49,8 +50,8 @@ setInterval(() => {
               const imgFilenames = getImgFileNames(dirForPdfImg);
 
               if (imgFilenames && imgFilenames.length > 0) {
-                console.log(imgFilenames);
                 cleanSmallByteImages(imgFilenames, dirForPdfImg);
+                await uploadFolder(dirForPdfImg, message.paper_id);
               }
             } catch (err) {
               console.error("ERROR OCCURRED to parse JSON message", err);
