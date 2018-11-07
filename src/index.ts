@@ -43,7 +43,7 @@ setInterval(() => {
         const processes = data.Messages.map(async msg => {
           console.log(msg.Body);
 
-          if (msg.Body && msg.MessageId) {
+          if (msg.Body && msg.MessageId && msg.ReceiptHandle) {
             try {
               const message = JSON.parse(msg.Body) as MessageBody;
 
@@ -51,9 +51,7 @@ setInterval(() => {
 
               if (!pdfPath || pdfPath.length === 0) {
                 console.log("There isn't any PDF file to extract");
-                if (msg.ReceiptHandle) {
-                  return deleteMessage(msg.ReceiptHandle);
-                }
+                return deleteMessage(msg.ReceiptHandle);
               }
 
               await extractImgs(pdfPath);
@@ -78,13 +76,9 @@ setInterval(() => {
               };
 
               await updateDynamoDB(paper);
+              deleteMessage(msg.ReceiptHandle);
             } catch (err) {
               console.error(err);
-            }
-
-            // TODO: Change the position of the below logic
-            if (msg.ReceiptHandle) {
-              deleteMessage(msg.ReceiptHandle);
             }
           }
         });

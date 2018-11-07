@@ -2,7 +2,9 @@ import * as AWS from "aws-sdk";
 import { Paper, ProgressStatus } from "./";
 import { PutItemInputAttributeMap } from "aws-sdk/clients/dynamodb";
 
-const dynamodb = new AWS.DynamoDB();
+const dynamodb = new AWS.DynamoDB({
+  region: "us-east-1"
+});
 const TABLE_NAME = "paper-pdf-extarct";
 
 interface DynamoDBPaperParams extends PutItemInputAttributeMap {
