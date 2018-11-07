@@ -7,6 +7,7 @@ import { cleanSmallByteImages } from "./cleanImgs";
 import { uploadFolder } from "./uploadToS3";
 import DynamoDBManager from "./updateDynamoDB";
 import { cleanArtifacts } from "./cleanArtifacts";
+import dynamoDBManger from "./updateDynamoDB";
 
 export type ProgressStatus = "failed" | "pending" | "done";
 
@@ -88,6 +89,7 @@ setInterval(() => {
               console.log(paper);
 
               cleanArtifacts(dirForPdfImg);
+              await dynamoDBManger.updateDynamoDB(paper);
               deleteMessage(msg.ReceiptHandle);
             } catch (err) {
               console.error(err);

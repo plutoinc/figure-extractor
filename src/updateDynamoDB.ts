@@ -1,5 +1,5 @@
 import * as AWS from "aws-sdk";
-// import { Paper, ProgressStatus } from "./";
+import { Paper } from "./";
 import { PutItemInputAttributeMap } from "aws-sdk/clients/dynamodb";
 
 const dynamodb = new AWS.DynamoDB({
@@ -12,21 +12,6 @@ interface DynamoDBPaperGetParams extends PutItemInputAttributeMap {
     S: string;
   };
 }
-
-// interface DynamoDBPaperParams extends DynamoDBPaperGetParams {
-//   paperUrls: {
-//     SS: string[];
-//   };
-//   paperImages: {
-//     SS: string[];
-//   };
-//   paperPdf: {
-//     S: string;
-//   };
-//   status: {
-//     S: ProgressStatus;
-//   };
-// }
 
 class DynamoDBManager {
   async getPaperItem(paperId: string) {
@@ -53,40 +38,30 @@ class DynamoDBManager {
       throw new Error(err);
     }
   }
+
+  async updateDynamoDB(paper: Paper) {
+    const params: AWS.DynamoDB.Types.UpdateItemInput = {
+      TableName: TABLE_NAME,
+      Key: {
+        paperId: { S: paper.paperId }
+      },
+      UpdateExpression: "set paperImages=:i, paperPdf=:p, status=:s",
+      ExpressionAttributeValues: {
+        ":i": { SS: paper.paperImages },
+        ":p": { S: paper.paperPdf },
+        ":s": { S: paper.status }
+      }
+    };
+
+    try {
+      await dynamodb.updateItem(params).promise();
+    } catch (err) {
+      console.error("ERROR OCCURRED AT UPDATE DYNAMO_DB ITEM");
+      throw new Error(err);
+    }
+  }
 }
 
 const dynamoDBManger = new DynamoDBManager();
 
 export default dynamoDBManger;
-
-// export async function updateDynamoDB(paper: Paper) {
-//   const item: DynamoDBPaperParams = {
-//     paperId: {
-//       S: paper.paperId
-//     },
-//     paperUrls: {
-//       SS: paper.paperUrls
-//     },
-//     paperImages: {
-//       SS: paper.paperImages
-//     },
-//     paperPdf: {
-//       S: paper.paperPdf
-//     },
-//     status: {
-//       S: paper.status
-//     }
-//   };
-
-//   const params = {
-//     Item: item,
-//     TableName: TABLE_NAME
-//   };
-
-//   try {
-//     await dynamodb.putItem(params).promise();
-//   } catch (err) {
-//     console.error("ERROR OCCURRED AT UPDATE DYNAMO DB");
-//     throw new Error(err);
-//   }
-// }
