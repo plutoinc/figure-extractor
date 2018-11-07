@@ -45,11 +45,11 @@ class DynamoDBManager {
       Key: {
         paperId: { S: paper.paperId }
       },
-      UpdateExpression: "set paperImages=:i, paperPdf=:p, status=:s",
+      UpdateExpression: "set paperImages=:i, paperPdf=:p, processStatus=:s",
       ExpressionAttributeValues: {
         ":i": { SS: paper.paperImages },
         ":p": { S: paper.paperPdf },
-        ":s": { S: paper.status }
+        ":s": { S: paper.processStatus }
       }
     };
 

@@ -21,7 +21,7 @@ export interface Paper {
   paperUrls: string[];
   paperImages: string[];
   paperPdf: string;
-  status: ProgressStatus;
+  processStatus: ProgressStatus;
 }
 
 const QUEUE_URL =
@@ -83,7 +83,7 @@ setInterval(() => {
                 paperUrls: message.paper_urls,
                 paperImages,
                 paperPdf,
-                status: "done"
+                processStatus: "done"
               };
 
               console.log(paper);
@@ -124,8 +124,8 @@ function deleteMessage(receiptHandle: string) {
 async function checkAlreadyDoneBefore(paperId: string): Promise<boolean> {
   const result = await DynamoDBManager.getPaperItem(paperId);
 
-  if (result && result.status) {
-    return result.status.S === "done";
+  if (result && result.processStatus) {
+    return result.processStatus.S === "done";
   }
 
   return false;
