@@ -51,9 +51,13 @@ setInterval(() => {
           }
         });
 
-        Promise.all(processes).then(() => {
-          console.log("DONE");
-        });
+        Promise.all(processes)
+          .then(() => {
+            console.log("DONE");
+          })
+          .catch(err => {
+            console.error(err);
+          });
       }
     }
   });
