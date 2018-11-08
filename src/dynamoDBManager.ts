@@ -48,7 +48,7 @@ class DynamoDBManager {
       UpdateExpression: "set paper_images=:i, paper_pdf=:p, process_status=:s",
       ExpressionAttributeValues: {
         ":i": { SS: paper.paperImages || [] },
-        ":p": { S: paper.paperPdf || "" },
+        ":p": { S: paper.paperPdf || "null" },
         ":s": { S: paper.processStatus }
       }
     };
