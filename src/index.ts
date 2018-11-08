@@ -5,9 +5,9 @@ import { extractImgs } from "./extractImgs";
 import { getImgFileNames } from "./getImgFilenames";
 import { cleanSmallByteImages } from "./cleanImgs";
 import { uploadFolder } from "./uploadToS3";
-import DynamoDBManager from "./updateDynamoDB";
+import DynamoDBManager from "./dynamoDBManager";
 import { cleanArtifacts } from "./cleanArtifacts";
-import dynamoDBManger from "./updateDynamoDB";
+import { Message } from "aws-sdk/clients/sqs";
 
 export type ProgressStatus = "failed" | "pending" | "done";
 
@@ -19,8 +19,8 @@ export interface MessageBody {
 export interface Paper {
   paperId: string;
   paperUrls: string[];
-  paperImages: string[];
-  paperPdf: string;
+  paperImages?: string[];
+  paperPdf?: string;
   processStatus: ProgressStatus;
 }
 
@@ -46,9 +46,14 @@ setInterval(() => {
           console.log(msg.Body);
 
           if (msg.Body && msg.MessageId && msg.ReceiptHandle) {
+            let message: MessageBody;
             try {
-              const message = JSON.parse(msg.Body) as MessageBody;
+              message = getMessageObject(msg.Body);
+            } catch (err) {
+              return deleteMessage(msg.ReceiptHandle);
+            }
 
+            try {
               const alreadyDone = await checkAlreadyDoneBefore(
                 message.paper_id
               );
@@ -62,7 +67,7 @@ setInterval(() => {
 
               if (!pdfPath || pdfPath.length === 0) {
                 console.log("There isn't any PDF file to extract");
-                return deleteMessage(msg.ReceiptHandle);
+                return sendJobFinished(message, "done", msg);
               }
 
               await extractImgs(pdfPath);
@@ -86,13 +91,12 @@ setInterval(() => {
                 processStatus: "done"
               };
 
-              console.log(paper);
-
               cleanArtifacts(dirForPdfImg);
-              await dynamoDBManger.updateDynamoDB(paper);
+              await DynamoDBManager.updateDynamoDB(paper);
               deleteMessage(msg.ReceiptHandle);
             } catch (err) {
               console.error(err);
+              await sendJobFinished(message, "failed", msg);
             }
           }
         });
@@ -108,6 +112,29 @@ setInterval(() => {
     }
   });
 }, 1000);
+
+async function sendJobFinished(
+  message: MessageBody,
+  status: ProgressStatus,
+  msg: Message
+) {
+  await DynamoDBManager.updateDynamoDB({
+    paperId: message.paper_id,
+    paperUrls: message.paper_urls,
+    processStatus: status
+  });
+  deleteMessage(msg.ReceiptHandle!);
+}
+
+function getMessageObject(msg: string) {
+  try {
+    const message = JSON.parse(msg) as MessageBody;
+    return message;
+  } catch (err) {
+    console.error("FAILED TO PARSING MESSAGE JSON", err);
+    throw err;
+  }
+}
 
 function deleteMessage(receiptHandle: string) {
   const params = {

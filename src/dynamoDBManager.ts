@@ -1,5 +1,5 @@
 import * as AWS from "aws-sdk";
-import { Paper } from "./";
+import { Paper } from ".";
 import { PutItemInputAttributeMap } from "aws-sdk/clients/dynamodb";
 
 const dynamodb = new AWS.DynamoDB({
@@ -47,8 +47,8 @@ class DynamoDBManager {
       },
       UpdateExpression: "set paperImages=:i, paperPdf=:p, processStatus=:s",
       ExpressionAttributeValues: {
-        ":i": { SS: paper.paperImages },
-        ":p": { S: paper.paperPdf },
+        ":i": { SS: paper.paperImages || [] },
+        ":p": { S: paper.paperPdf || "" },
         ":s": { S: paper.processStatus }
       }
     };
