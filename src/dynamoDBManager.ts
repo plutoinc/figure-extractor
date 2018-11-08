@@ -25,7 +25,7 @@ const paperSchema = new Schema({
 const PaperModel = dynamoose.model<
   {
     paper_id: string;
-    paper_urls: string[];
+    paper_urls?: string[];
     paper_pdf?: string;
     paper_images?: string[];
     process_status: string;
@@ -51,7 +51,6 @@ class DynamoDBManager {
     const paperModel = new PaperModel({
       paper_id: paper.paperId,
       paper_pdf: paper.paperPdf,
-      paper_urls: paper.paperUrls,
       process_status: paper.processStatus,
       paper_images: paper.paperImages
     });

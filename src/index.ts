@@ -1,6 +1,5 @@
 import * as AWS from "aws-sdk";
 import * as path from "path";
-import * as dynamoose from "dynamoose";
 import { downloadPDF } from "./downloadPdf";
 import { extractImgs } from "./extractImgs";
 import { getImgFileNames } from "./getImgFilenames";
@@ -10,19 +9,18 @@ import DynamoDBManager from "./dynamoDBManager";
 import { cleanArtifacts } from "./cleanArtifacts";
 import { Message } from "aws-sdk/clients/sqs";
 
-export type ProgressStatus = "failed" | "pending" | "done";
+export type ProcessStatus = "failed" | "pending" | "done";
 
 export interface MessageBody {
   paper_id: string;
-  paper_urls: string[];
 }
 
 export interface Paper {
   paperId: string;
-  paperUrls: string[];
+  paperUrls?: string[];
   paperImages?: string[];
   paperPdf?: string;
-  processStatus: ProgressStatus;
+  processStatus: ProcessStatus;
 }
 
 const QUEUE_URL =
@@ -35,10 +33,6 @@ const sqs = new AWS.SQS({
 const params = {
   QueueUrl: QUEUE_URL
 };
-
-dynamoose.AWS.config.update({
-  region: "us-east-1"
-});
 
 setInterval(() => {
   sqs.receiveMessage(params, function(err, data) {
@@ -59,20 +53,32 @@ setInterval(() => {
             }
 
             try {
-              const alreadyDone = await checkAlreadyDoneBefore(
-                message.paper_id
-              );
+              const paperModel = await getPaperModel(message.paper_id);
 
-              if (alreadyDone) {
+              if (!paperModel) {
+                throw new Error(
+                  "There isn't the target paper in Dynamo DB! it only exists in queue message."
+                );
+              }
+
+              if (
+                paperModel &&
+                paperModel.process_status &&
+                paperModel.process_status === "done"
+              ) {
                 console.log("It's already processed one");
                 return deleteMessage(msg.ReceiptHandle);
               }
 
-              const pdfPath = await downloadPDF(msg.MessageId, message);
+              const pdfPath = await downloadPDF(
+                msg.MessageId,
+                paperModel.paper_id,
+                paperModel.paper_urls!
+              );
 
               if (!pdfPath || pdfPath.length === 0) {
                 console.log("There isn't any PDF file to extract");
-                return sendJobFinished(message, "done", msg);
+                return sendJobFinished(paperModel.paper_id, "done", msg);
               }
 
               await extractImgs(pdfPath);
@@ -90,7 +96,7 @@ setInterval(() => {
 
               const paper: Paper = {
                 paperId: message.paper_id,
-                paperUrls: message.paper_urls,
+                paperUrls: paperModel.paper_urls,
                 paperImages,
                 paperPdf,
                 processStatus: "done"
@@ -101,7 +107,7 @@ setInterval(() => {
               deleteMessage(msg.ReceiptHandle);
             } catch (err) {
               console.error(err);
-              await sendJobFinished(message, "failed", msg);
+              await sendJobFinished(message.paper_id, "failed", msg);
             }
           }
         });
@@ -119,13 +125,12 @@ setInterval(() => {
 }, 1000);
 
 async function sendJobFinished(
-  message: MessageBody,
-  status: ProgressStatus,
+  paperId: string,
+  status: ProcessStatus,
   msg: Message
 ) {
   await DynamoDBManager.updateDynamoDB({
-    paperId: message.paper_id,
-    paperUrls: message.paper_urls,
+    paperId,
     processStatus: status
   });
   deleteMessage(msg.ReceiptHandle!);
@@ -153,12 +158,12 @@ function deleteMessage(receiptHandle: string) {
   });
 }
 
-async function checkAlreadyDoneBefore(paperId: string): Promise<boolean> {
-  const result = await DynamoDBManager.getPaperItem(paperId);
+async function getPaperModel(paperId: string) {
+  const paperModel = await DynamoDBManager.getPaperItem(paperId);
 
-  if (result && result.process_status) {
-    return result.process_status === "done";
+  if (paperModel) {
+    return paperModel;
   }
 
-  return false;
+  return null;
 }

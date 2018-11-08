@@ -1,15 +1,14 @@
 import * as request from "request";
 import * as fs from "fs";
-import { MessageBody } from "./";
 
 export async function downloadPDF(
   messageId: string,
-  messageBody: MessageBody
+  paperId: string,
+  paperUrls: string[]
 ): Promise<string> {
-  const urlList = messageBody.paper_urls;
   let pdfPath: string = "";
 
-  for (const url of urlList) {
+  for (const url of paperUrls) {
     try {
       await new Promise((resolve, reject) => {
         request(
@@ -30,7 +29,7 @@ export async function downloadPDF(
 
               if (isPDF) {
                 const urlArray = url.split("/");
-                const rawPdfFilename = `${messageBody.paper_id}-${
+                const rawPdfFilename = `${paperId}-${
                   urlArray[urlArray.length - 1]
                 }`;
 
