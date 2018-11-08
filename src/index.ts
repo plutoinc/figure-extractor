@@ -1,5 +1,6 @@
 import * as AWS from "aws-sdk";
 import * as path from "path";
+import * as dynamoose from "dynamoose";
 import { downloadPDF } from "./downloadPdf";
 import { extractImgs } from "./extractImgs";
 import { getImgFileNames } from "./getImgFilenames";
@@ -34,6 +35,10 @@ const sqs = new AWS.SQS({
 const params = {
   QueueUrl: QUEUE_URL
 };
+
+dynamoose.AWS.config.update({
+  region: "us-east-1"
+});
 
 setInterval(() => {
   sqs.receiveMessage(params, function(err, data) {
@@ -152,7 +157,7 @@ async function checkAlreadyDoneBefore(paperId: string): Promise<boolean> {
   const result = await DynamoDBManager.getPaperItem(paperId);
 
   if (result && result.process_status) {
-    return result.process_status.S === "done";
+    return result.process_status === "done";
   }
 
   return false;

@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/node": "^10.12.2",
     "aws-sdk": "^2.349.0",
+    "dynamoose": "^1.1.0",
     "gm": "^1.23.1",
     "request": "^2.88.0",
     "rimraf": "^2.6.2"

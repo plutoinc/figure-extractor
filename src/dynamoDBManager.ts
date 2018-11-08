@@ -1,36 +1,44 @@
-import * as AWS from "aws-sdk";
+import * as dynamoose from "dynamoose";
 import { Paper } from ".";
-import { PutItemInputAttributeMap } from "aws-sdk/clients/dynamodb";
 
-const dynamodb = new AWS.DynamoDB({
-  region: "us-east-1"
-});
 const TABLE_NAME = "paper-pdf-images";
 
-interface DynamoDBPaperGetParams extends PutItemInputAttributeMap {
+const Schema = dynamoose.Schema;
+const paperSchema = new Schema({
   paper_id: {
-    S: string;
-  };
-}
+    type: String,
+    hashKey: true
+  },
+  paper_urls: {
+    type: [String]
+  },
+  paper_pdf: {
+    type: String
+  },
+  paper_images: {
+    type: [String]
+  },
+  process_status: {
+    type: String
+  }
+});
+const PaperModel = dynamoose.model<
+  {
+    paper_id: string;
+    paper_urls: string[];
+    paper_pdf?: string;
+    paper_images?: string[];
+    process_status: string;
+  },
+  {}
+>(TABLE_NAME, paperSchema);
 
 class DynamoDBManager {
   async getPaperItem(paperId: string) {
-    const key: DynamoDBPaperGetParams = {
-      paper_id: {
-        S: paperId
-      }
-    };
-    const params = {
-      Key: key,
-      TableName: TABLE_NAME
-    };
-
     try {
-      const data = await dynamodb.getItem(params).promise();
-      if (data.Item) {
-        console.log(data.Item);
-
-        return data.Item;
+      const data = await PaperModel.get(paperId);
+      if (data) {
+        return data;
       }
       return null;
     } catch (err) {
@@ -40,21 +48,15 @@ class DynamoDBManager {
   }
 
   async updateDynamoDB(paper: Paper) {
-    const params: AWS.DynamoDB.Types.UpdateItemInput = {
-      TableName: TABLE_NAME,
-      Key: {
-        paper_id: { S: paper.paperId }
-      },
-      UpdateExpression: "set paper_images=:i, paper_pdf=:p, process_status=:s",
-      ExpressionAttributeValues: {
-        ":i": { SS: paper.paperImages || [] },
-        ":p": { S: paper.paperPdf || "null" },
-        ":s": { S: paper.processStatus }
-      }
-    };
-
+    const paperModel = new PaperModel({
+      paper_id: paper.paperId,
+      paper_pdf: paper.paperPdf,
+      paper_urls: paper.paperUrls,
+      process_status: paper.processStatus,
+      paper_images: paper.paperImages
+    });
     try {
-      await dynamodb.updateItem(params).promise();
+      await paperModel.save();
     } catch (err) {
       console.error("ERROR OCCURRED AT UPDATE DYNAMO_DB ITEM");
       throw new Error(err);
