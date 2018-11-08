@@ -5,10 +5,10 @@ import { PutItemInputAttributeMap } from "aws-sdk/clients/dynamodb";
 const dynamodb = new AWS.DynamoDB({
   region: "us-east-1"
 });
-const TABLE_NAME = "paper-pdf-extarct";
+const TABLE_NAME = "paper-pdf-images";
 
 interface DynamoDBPaperGetParams extends PutItemInputAttributeMap {
-  paperId: {
+  paper_id: {
     S: string;
   };
 }
@@ -16,7 +16,7 @@ interface DynamoDBPaperGetParams extends PutItemInputAttributeMap {
 class DynamoDBManager {
   async getPaperItem(paperId: string) {
     const key: DynamoDBPaperGetParams = {
-      paperId: {
+      paper_id: {
         S: paperId
       }
     };
@@ -43,9 +43,9 @@ class DynamoDBManager {
     const params: AWS.DynamoDB.Types.UpdateItemInput = {
       TableName: TABLE_NAME,
       Key: {
-        paperId: { S: paper.paperId }
+        paper_id: { S: paper.paperId }
       },
-      UpdateExpression: "set paperImages=:i, paperPdf=:p, processStatus=:s",
+      UpdateExpression: "set paper_images=:i, paper_pdf=:p, process_status=:s",
       ExpressionAttributeValues: {
         ":i": { SS: paper.paperImages || [] },
         ":p": { S: paper.paperPdf || "" },

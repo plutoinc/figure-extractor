@@ -151,8 +151,8 @@ function deleteMessage(receiptHandle: string) {
 async function checkAlreadyDoneBefore(paperId: string): Promise<boolean> {
   const result = await DynamoDBManager.getPaperItem(paperId);
 
-  if (result && result.processStatus) {
-    return result.processStatus.S === "done";
+  if (result && result.process_status) {
+    return result.process_status.S === "done";
   }
 
   return false;
