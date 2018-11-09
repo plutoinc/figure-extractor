@@ -76,7 +76,7 @@ setInterval(() => {
                 paperModel.paper_urls!
               );
 
-              const pdfPath = pdfResult.pdfPath;
+              const pdfPath = pdfResult.pdfLocalPath;
 
               if (!pdfPath || pdfPath.length === 0) {
                 console.log("There isn't any PDF file to extract");
@@ -100,12 +100,15 @@ setInterval(() => {
                 paperId: message.paper_id,
                 paperUrls: paperModel.paper_urls,
                 paperImages,
-                paperPdf: pdfResult,
+                paperPdf: {
+                  pdfUrl: paperPdf,
+                  originUrl: pdfResult.originUrl
+                },
                 processStatus: "done"
               };
 
-              cleanArtifacts(dirForPdfImg);
               await DynamoDBManager.updateDynamoDB(paper);
+              cleanArtifacts(dirForPdfImg);
               deleteMessage(msg.ReceiptHandle);
             } catch (err) {
               console.error(err);

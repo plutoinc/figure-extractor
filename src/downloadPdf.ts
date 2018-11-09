@@ -2,15 +2,19 @@ import * as request from "request";
 import * as fs from "fs";
 
 export interface PDFModel {
-  pdfPath: string;
+  pdfUrl: string;
   originUrl: string;
+}
+
+export interface PDF extends PDFModel {
+  pdfLocalPath: string;
 }
 
 export async function downloadPDF(
   messageId: string,
   paperId: string,
   paperUrls: string[]
-): Promise<PDFModel> {
+): Promise<PDF> {
   let pdfPath: string = "";
   let originUrl: string = "";
 
@@ -77,5 +81,5 @@ export async function downloadPDF(
     }
   }
 
-  return { pdfPath, originUrl };
+  return { pdfLocalPath: pdfPath, originUrl, pdfUrl: "" };
 }
