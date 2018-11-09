@@ -5,24 +5,29 @@ import { PDFModel } from "./downloadPdf";
 const TABLE_NAME = "paper-pdf-images";
 
 const Schema = dynamoose.Schema;
-const paperSchema = new Schema({
-  paper_id: {
-    type: String,
-    hashKey: true
+const paperSchema = new Schema(
+  {
+    paper_id: {
+      type: String,
+      hashKey: true
+    },
+    paper_urls: {
+      type: [String]
+    },
+    paper_pdf: {
+      type: Object
+    },
+    paper_images: {
+      type: [String]
+    },
+    process_status: {
+      type: String
+    }
   },
-  paper_urls: {
-    type: [String]
-  },
-  paper_pdf: {
-    type: Object
-  },
-  paper_images: {
-    type: [String]
-  },
-  process_status: {
-    type: String
+  {
+    useDocumentTypes: true
   }
-});
+);
 const PaperModel = dynamoose.model<
   {
     paper_id: string;
