@@ -18,6 +18,7 @@ export async function cleanSmallByteImages(
               fs.unlinkSync(`${tmpDirPath}/${imgFile}`);
             } catch (err) {
               console.error("HAS ERROR TO DELETE JUNK IMAGE FILE");
+              reject(err);
             }
           }
           resolve(value);

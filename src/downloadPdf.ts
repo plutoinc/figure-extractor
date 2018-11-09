@@ -15,7 +15,8 @@ export async function downloadPDF(
           url,
           {
             timeout: 10000,
-            encoding: "binary"
+            encoding: "binary",
+            maxRedirects: 9
           },
           (err, res, body) => {
             if (err) {

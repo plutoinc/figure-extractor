@@ -34,8 +34,6 @@ const params = {
   QueueUrl: QUEUE_URL
 };
 
-process.setMaxListeners(0);
-
 setInterval(() => {
   sqs.receiveMessage(params, function(err, data) {
     if (err) {
