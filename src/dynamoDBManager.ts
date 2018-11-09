@@ -37,9 +37,11 @@ class DynamoDBManager {
   async getPaperItem(paperId: string) {
     try {
       const data = await PaperModel.get(paperId);
+
       if (data) {
         return data;
       }
+
       return null;
     } catch (err) {
       console.error("ERROR OCCURRED AT GET DYNAMO_DB ITEM");
@@ -48,14 +50,15 @@ class DynamoDBManager {
   }
 
   async updateDynamoDB(paper: Paper) {
-    const paperModel = new PaperModel({
-      paper_id: paper.paperId,
-      paper_pdf: paper.paperPdf,
-      process_status: paper.processStatus,
-      paper_images: paper.paperImages
-    });
     try {
-      await paperModel.save();
+      await PaperModel.update(
+        { paper_id: paper.paperId },
+        {
+          paper_pdf: paper.paperPdf,
+          process_status: paper.processStatus,
+          paper_images: paper.paperImages
+        }
+      );
     } catch (err) {
       console.error("ERROR OCCURRED AT UPDATE DYNAMO_DB ITEM");
       throw new Error(err);

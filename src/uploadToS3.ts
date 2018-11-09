@@ -26,7 +26,8 @@ export async function uploadFolder(
         const params = {
           Bucket: BUCKET,
           Key: `${prefix}/${filename}`,
-          Body: fileStream
+          Body: fileStream,
+          ACL: "public-read"
         };
 
         try {
