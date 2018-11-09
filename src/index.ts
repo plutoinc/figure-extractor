@@ -82,7 +82,7 @@ setInterval(() => {
               }
 
               await extractImgs(pdfPath);
-              const dirForPdfImg = path.resolve(pdfPath, "../");
+              const dirForPdfImg = path.resolve(pdfPath, "..");
               const imgFilenames = getImgFileNames(dirForPdfImg);
 
               if (imgFilenames && imgFilenames.length > 0) {
