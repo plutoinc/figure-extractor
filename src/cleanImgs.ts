@@ -14,7 +14,11 @@ export async function cleanSmallByteImages(
         } else {
           if (!isNaN(parseInt(value[value.length - 2], 10))) {
             // Byte
-            fs.unlinkSync(`${tmpDirPath}/${imgFile}`);
+            try {
+              fs.unlinkSync(`${tmpDirPath}/${imgFile}`);
+            } catch (err) {
+              console.error("HAS ERROR TO DELETE JUNK IMAGE FILE");
+            }
           }
           resolve(value);
         }
