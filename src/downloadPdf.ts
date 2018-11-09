@@ -1,12 +1,18 @@
 import * as request from "request";
 import * as fs from "fs";
 
+export interface PDFModel {
+  pdfPath: string;
+  originUrl: string;
+}
+
 export async function downloadPDF(
   messageId: string,
   paperId: string,
   paperUrls: string[]
-): Promise<string> {
+): Promise<PDFModel> {
   let pdfPath: string = "";
+  let originUrl: string = "";
 
   for (const url of paperUrls) {
     try {
@@ -20,6 +26,7 @@ export async function downloadPDF(
           },
           (err, res, body) => {
             if (err) {
+              console.log("HAD ERROR WHEN TRYING TO GET PDF FROM", url);
               console.error(err);
               reject(err);
             } else {
@@ -52,6 +59,7 @@ export async function downloadPDF(
                 );
 
                 pdfPath = `${__dirname}/${messageId}/${pdfFilename}`;
+                originUrl = url;
                 resolve();
               } else {
                 reject("Not PDF");
@@ -69,5 +77,5 @@ export async function downloadPDF(
     }
   }
 
-  return pdfPath;
+  return { pdfPath, originUrl };
 }

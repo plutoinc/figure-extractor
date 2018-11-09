@@ -1,5 +1,6 @@
 import * as dynamoose from "dynamoose";
 import { Paper } from ".";
+import { PDFModel } from "./downloadPdf";
 
 const TABLE_NAME = "paper-pdf-images";
 
@@ -13,7 +14,7 @@ const paperSchema = new Schema({
     type: [String]
   },
   paper_pdf: {
-    type: String
+    type: Object
   },
   paper_images: {
     type: [String]
@@ -26,7 +27,7 @@ const PaperModel = dynamoose.model<
   {
     paper_id: string;
     paper_urls?: string[];
-    paper_pdf?: string;
+    paper_pdf?: PDFModel;
     paper_images?: string[];
     process_status: string;
   },

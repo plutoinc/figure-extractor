@@ -1,6 +1,6 @@
 import * as AWS from "aws-sdk";
 import * as path from "path";
-import { downloadPDF } from "./downloadPdf";
+import { downloadPDF, PDFModel } from "./downloadPdf";
 import { extractImgs } from "./extractImgs";
 import { getImgFileNames } from "./getImgFilenames";
 import { cleanSmallByteImages } from "./cleanImgs";
@@ -19,7 +19,7 @@ export interface Paper {
   paperId: string;
   paperUrls?: string[];
   paperImages?: string[];
-  paperPdf?: string;
+  paperPdf?: PDFModel;
   processStatus: ProcessStatus;
 }
 
@@ -70,11 +70,13 @@ setInterval(() => {
                 return deleteMessage(msg.ReceiptHandle);
               }
 
-              const pdfPath = await downloadPDF(
+              const pdfResult = await downloadPDF(
                 msg.MessageId,
                 paperModel.paper_id,
                 paperModel.paper_urls!
               );
+
+              const pdfPath = pdfResult.pdfPath;
 
               if (!pdfPath || pdfPath.length === 0) {
                 console.log("There isn't any PDF file to extract");
@@ -98,7 +100,7 @@ setInterval(() => {
                 paperId: message.paper_id,
                 paperUrls: paperModel.paper_urls,
                 paperImages,
-                paperPdf,
+                paperPdf: pdfResult,
                 processStatus: "done"
               };
 
