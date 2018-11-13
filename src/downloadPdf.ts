@@ -30,8 +30,15 @@ export async function downloadPDF(
           },
           (err, res, body) => {
             if (err) {
-              console.log("HAD ERROR WHEN TRYING TO GET PDF FROM", url);
-              console.error(err);
+              if (err.code !== "ENOTFOUND") {
+                console.log("HAD ERROR WHEN TRYING TO GET PDF FROM", url);
+                console.error(err);
+              } else if (err.code === "ENOTFOUND") {
+                console.log(
+                  "There isn't any PDF file. maybe the link is broken",
+                  url
+                );
+              }
               reject(err);
             } else {
               const isPDF =

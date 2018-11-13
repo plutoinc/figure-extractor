@@ -56,9 +56,10 @@ setInterval(() => {
               const paperModel = await getPaperModel(message.paper_id);
 
               if (!paperModel) {
-                throw new Error(
+                console.log(
                   "There isn't the target paper in Dynamo DB! it only exists in queue message."
                 );
+                return;
               }
 
               if (
