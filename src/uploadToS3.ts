@@ -25,7 +25,7 @@ export async function uploadFolder(
       fileStream.on("open", async () => {
         const params = {
           Bucket: BUCKET,
-          Key: encodeURIComponent(`${prefix}/${filename}`),
+          Key: `${prefix}/${encodeURIComponent(filename)}`,
           Body: fileStream,
           ACL: "public-read"
         };
