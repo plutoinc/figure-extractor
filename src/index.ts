@@ -89,7 +89,7 @@ setInterval(() => {
               const imgFilenames = getImgFileNames(dirForPdfImg);
 
               if (imgFilenames && imgFilenames.length > 0) {
-                cleanSmallByteImages(imgFilenames, dirForPdfImg);
+                await cleanSmallByteImages(imgFilenames, dirForPdfImg);
               }
 
               const s3Keys = await uploadFolder(dirForPdfImg, message.paper_id);
