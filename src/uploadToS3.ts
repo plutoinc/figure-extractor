@@ -12,7 +12,7 @@ export async function uploadFolder(
   // prefix should be an id of the Paper
   const filenames = fs.readdirSync(folderPath);
 
-  const promises = filenames.map(async filename => {
+  const promises = filenames.map(async (filename, index) => {
     return await new Promise((resolve, reject) => {
       const fileStream = fs.createReadStream(`${folderPath}/${filename}`);
 
@@ -23,9 +23,11 @@ export async function uploadFolder(
       });
 
       fileStream.on("open", async () => {
+        const filenameArr = filename.split(".");
+        const extension = filenameArr[filenameArr.length - 1];
         const params = {
           Bucket: BUCKET,
-          Key: `${prefix}/${encodeURIComponent(filename)}`,
+          Key: `${prefix}/${index}.${extension}`,
           Body: fileStream,
           ACL: "public-read"
         };
