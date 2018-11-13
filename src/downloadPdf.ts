@@ -77,6 +77,7 @@ export async function downloadPDF(
         break;
       }
     } catch (err) {
+      console.log(err);
       console.error("ERROR OCCURRED AT REQUEST URL LIST TO FIND PDF");
     }
   }
